@@ -1,0 +1,13 @@
+.idea
+*.iml
+
+dist
+node_modules
+tmp
+
+.env
+
+coverage
+
+server.cert
+server.key
