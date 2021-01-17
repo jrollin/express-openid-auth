@@ -11,6 +11,11 @@ export const loadConfig = (logger: LoggerGateway) => {
         process.exit(1)
     }
     // SSL
+    if (!process.env.USE_SSL) {
+        logger.error('USE_SSL is not defined')
+        process.exit(1)
+    }
+
     if (!process.env.SSL_KEY) {
         logger.error('SSL_KEY is not defined')
         process.exit(1)
@@ -51,6 +56,7 @@ export const loadConfig = (logger: LoggerGateway) => {
     return {
         PORT: parseInt(process.env.PORT),
         HOSTNAME: process.env.HOSTNAME,
+        USE_SSL: process.env.USE_SSL === 'true',
         SSL_KEY: process.env.SSL_KEY,
         SSL_CERT: process.env.SSL_CERT,
         COOKIE_NAME: process.env.COOKIE_NAME,
