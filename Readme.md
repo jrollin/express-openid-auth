@@ -8,16 +8,40 @@ Node + Typescript  + Express
 
 ## Required
 
-SSL certificate for Https
+
+### SSL certificate for Https
+
+Use `mkcert` tool
+
+See installation on [mkcert github page](https://github.com/FiloSottile/mkcert)
+
+
+Move to `certificates` directory
 
 ```bash
-mkdir certificates
-openssl req -nodes -new -x509 -keyout ./certificates/server.key -out ./certificates/server.cert
+cd certificates
 ```
 
-> nb : auto signed certificate show security warnings in recent browser. Accept or buy an official certificate
+Create local Certificate Authority
 
-Define your own env file
+```bash
+mkcert -install
+```
+
+Generate signed certificate for domain
+
+```bash
+mkcert "auth.myproject.local"
+```
+
+Resolve your deomain to local,  edit `/etc/hosts`
+
+```
+127.0.0.1 auth.myproject.local
+```
+
+
+### Define your own env file
 
 ```bash
 cp .env.template .env

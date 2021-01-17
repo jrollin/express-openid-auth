@@ -9,5 +9,4 @@ tmp
 
 coverage
 
-server.cert
-server.key
+certificates/*.pem

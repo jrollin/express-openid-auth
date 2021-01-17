@@ -6,6 +6,10 @@ export const loadConfig = (logger: LoggerGateway) => {
         logger.error('PORT is not defined')
         process.exit(1)
     }
+    if (!process.env.HOSTNAME) {
+        logger.error('HOSTNAME is not defined')
+        process.exit(1)
+    }
     // SSL
     if (!process.env.SSL_KEY) {
         logger.error('SSL_KEY is not defined')
@@ -35,7 +39,8 @@ export const loadConfig = (logger: LoggerGateway) => {
     }
 
     return {
-        PORT: process.env.PORT,
+        PORT: parseInt(process.env.PORT),
+        HOSTNAME: process.env.HOSTNAME,
         SSL_KEY: process.env.SSL_KEY,
         SSL_CERT: process.env.SSL_CERT,
         OPENID_CLIENT_ID: process.env.OPENID_CLIENT_ID,

@@ -19,6 +19,7 @@ const logger = new PinoLoggerGateway(pino())
 dotenv.config()
 const {
     PORT,
+    HOSTNAME,
     SSL_CERT,
     SSL_KEY,
     OPENID_CLIENT_ID,
@@ -40,7 +41,7 @@ configureAuthRouter(app, logger, OPENID_CLIENT_ID, OPENID_REDIRECT_URL, OPENID_A
 configureErrorHandler(app, logger)
 
 // server
-https
+const server = https
     .createServer(
         {
             key: fs.readFileSync(SSL_KEY),
@@ -48,12 +49,16 @@ https
         },
         app
     )
-    .listen(PORT, () => {
-        logger.info('Started server', { PORT })
+server.listen(PORT, HOSTNAME, () => {
+        const URL = `https://${HOSTNAME}:${PORT}`
+        logger.info('Started server', {URL})
         process.on('SIGABRT', cleanTerminate)
         process.on('SIGINT', cleanTerminate)
         process.on('SIGBREAK', cleanTerminate)
     })
+
+
+
 // track server termination
 const cleanTerminate = (signal: NodeJS.Signals): void => {
     logger.info('cleaning before terminating process ...', { signal })
