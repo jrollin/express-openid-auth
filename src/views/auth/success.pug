@@ -1,0 +1,10 @@
+extends ../layout
+
+block layout-content
+  div.container
+    h1.title Authentication succeed !
+    div.content
+        p @TODO: Text after success
+        pre.Details=JSON.stringify(infos, null, 2)
+        a.button(href=`${redirectUrl}`) Return to site 
+

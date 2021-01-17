@@ -1,6 +1,7 @@
 import * as dotenv from 'dotenv'
 import https from 'https'
 import * as fs from 'fs'
+import path from 'path'
 import pino from 'pino'
 import express from 'express'
 import morgan from 'morgan'
@@ -22,6 +23,8 @@ const {
     HOSTNAME,
     SSL_CERT,
     SSL_KEY,
+    COOKIE_NAME,
+    COOKIE_DOMAIN,
     OPENID_CLIENT_ID,
     OPENID_REDIRECT_URL,
     OPENID_AUTH_URL,
@@ -34,11 +37,18 @@ app.use(bodyParser.json())
 app.use(morgan('tiny'))
 app.use(helmet())
 app.use(cors())
+//views
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "pug");
 
 // auth routes
-configureAuthRouter(app, logger, OPENID_CLIENT_ID, OPENID_REDIRECT_URL, OPENID_AUTH_URL, OPENID_TOKEN_URL)
+configureAuthRouter(app, logger, COOKIE_NAME, COOKIE_DOMAIN, OPENID_CLIENT_ID, OPENID_REDIRECT_URL, OPENID_AUTH_URL, OPENID_TOKEN_URL)
 // error handler middleware
 configureErrorHandler(app, logger)
+
+app.get("/", (req, res) => {
+    res.render("index", { title: "Home" });
+});
 
 // server
 const server = https

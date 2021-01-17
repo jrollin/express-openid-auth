@@ -7,6 +7,8 @@ import { LoggerGateway } from '../../gateway/LoggerGateway'
 export const configureAuthRouter = (
     app: Application,
     logger: LoggerGateway,
+    cookieName: string,
+    cookieDomain: string,
     openIdClientId: string,
     openIdRedirectUrl: string,
     openIdAuthUrl: string,
@@ -22,9 +24,10 @@ export const configureAuthRouter = (
         const verifier: string = generateRandomString(128).toString()
         const challenge: string = generateCodeChallenge(verifier)
         const state: string = generateRandomString(128).toString()
-
+        // redirect to origin URL after success ?
+        const originUrl = req.query.originUrl
         // store verifier with state in short live cookie (5min)
-        const cookieData = JSON.stringify({ state, verifier })
+        const cookieData = JSON.stringify({ state, verifier, originUrl })
         res.cookie(cookieStateName, cookieData, { maxAge: cookieMaxAge, httpOnly: true, secure: true })
 
         const params: { [key: string]: string } = {
@@ -35,15 +38,13 @@ export const configureAuthRouter = (
             redirect_uri: openIdRedirectUrl,
             state,
             code_challenge: challenge,
-            code_challenge_method: 'S256',
+            code_challenge_method: 'S256'
         }
         const getAuthCode = openIdAuthUrl.concat('?', urlEncodeParams(params))
 
-        // @todo: display link or redirect ?
+        // @TODO: display or redirect without consent ?
         // display link
-        return res.send({
-            loginUrl: getAuthCode,
-        })
+        return renderResponse(req, res, { loginUrl: getAuthCode }, 'auth/login' )
     })
 
     // part 2:: exchange code with access token
@@ -52,24 +53,28 @@ export const configureAuthRouter = (
 
         if (code === undefined) {
             logger.error('Authorization code is invalid')
-            return res.status(401).json('Authorization request is invalid')
+            res.status(401)
+            return renderResponse(req, res, {message: 'Authorization request is invalid'}, 'auth/error' )
         }
         if (state === undefined) {
             logger.error('Authorization state is invalid')
-            return res.status(401).json('Authorization request is invalid')
+            res.status(401)
+            return renderResponse(req, res, {message: 'Authorization request is invalid'}, 'auth/error' )
         }
 
         // load auth session infos
         const authstate = req.cookies[cookieStateName]
         if (authstate === undefined) {
             logger.error('No session found')
-            return res.status(401).json('Authorization request is invalid')
+            res.status(401)
+            return renderResponse(req, res, {message: 'Authorization request is invalid'}, 'auth/error' )
         }
 
         const cookieData = JSON.parse(authstate)
         if (state !== cookieData.state) {
             logger.error('Authorization state mismatch state in session')
-            return res.status(401).json('Authorization request is invalid')
+            res.status(401)
+            return renderResponse(req, res, {message: 'Authorization request is invalid'}, 'auth/error' )
         }
 
         try {
@@ -91,17 +96,30 @@ export const configureAuthRouter = (
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
             })
-
             const { access_token } = respBody.data
             // store in cookie
-            res.cookie('access_token', access_token, { httpOnly: true, secure: true })
-            // @todo remove
+            res.cookie(cookieName, access_token, { httpOnly: true, secure: true, domain: cookieDomain })
+            // remove state
+            res.cookie(cookieStateName, {}, {maxAge: 0})
+
+            // redirect to origin ?
+            const redirectUrl = cookieData.originUrl != null ? cookieData.originUrl : '/'
             // display  infos
-            return res.json({ infos: respBody.data })
+            return renderResponse(req, res, { infos: respBody.data, redirectUrl }, 'auth/success')
+
         } catch (err) {
             logger.error('Error retrieving access token', err)
-            return res.status(400).json('Auth failed')
+            res.status(400)
+            return renderResponse(req, res, {message: 'Authentication failed'}, 'auth/error' )
         }
     })
     app.use('/auth', router)
 }
+
+const renderResponse = (req: Request, res: Response, args: any, view?: string) => {
+    if (req.accepts('html')) {
+        res.render(view!, args);
+        return;
+    }
+    res.json(args)
+} 
