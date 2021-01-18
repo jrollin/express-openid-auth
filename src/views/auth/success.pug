@@ -4,7 +4,7 @@ block layout-content
   div.container
     h1.title Authentication succeed !
     div.content
-        p @TODO: Text after success
+        p Retrieved JWT and store access token in cookie named '#{cookieName}'
         pre.Details=JSON.stringify(infos, null, 2)
         a.button(href=`${redirectUrl}`) Return to site 
 

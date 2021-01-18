@@ -24,7 +24,6 @@ export const loadConfig = (logger: LoggerGateway) => {
         logger.error('SSL_CERT is not defined')
         process.exit(1)
     }
-
     // cookie
     if (!process.env.COOKIE_NAME) {
         logger.error('COOKIE_NAME is not defined')
@@ -59,6 +58,7 @@ export const loadConfig = (logger: LoggerGateway) => {
         USE_SSL: process.env.USE_SSL === 'true',
         SSL_KEY: process.env.SSL_KEY,
         SSL_CERT: process.env.SSL_CERT,
+        REDIRECT: process.env.REDIRECT === 'true',
         COOKIE_NAME: process.env.COOKIE_NAME,
         COOKIE_DOMAIN: process.env.COOKIE_DOMAIN,
         OPENID_CLIENT_ID: process.env.OPENID_CLIENT_ID,

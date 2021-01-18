@@ -3,13 +3,13 @@ extends layout
 block layout-content
   div.container
     div.content
-        h1.title Hello !
-        p.welcome This is the demo homepage
-        div.content
-            a.button.is-primary(href=`/auth/login`) Login
-        div.content
-            p You can provide Origin URLto redirect after sucessful authentication
-            p format: ?originUrl=URL
-            a.button(href=`/auth/login?originUrl=https://github.com/jrollin`) Login WITH originUrl provided  
+        h1.title Guard portal
+        if token 
+          p.is-size-3 Hello  #{token.preferred_username} ! 
+          p You are already authenticated
+          a.button(href=`/auth/logout`) Logout
+        else
+          div.content
+              a.button.is-primary(href=`/auth/login`) Login
 
 

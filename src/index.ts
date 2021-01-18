@@ -13,7 +13,7 @@ import { loadConfig } from './config'
 import { PinoLoggerGateway } from './adapter/gateway/PinoLoggerGateway'
 import { configureAuthRouter } from './adapter/http/routes/AuthRouter'
 import { configureErrorHandler } from './adapter/http/routes/ErrorHandler'
-import { createServer } from 'http'
+import { configureHomepageRouter } from './adapter/http/routes/HomepageRouter'
 
 // logger
 const logger = new PinoLoggerGateway(pino())
@@ -26,6 +26,7 @@ const {
     USE_SSL,
     SSL_CERT,
     SSL_KEY,
+    REDIRECT,
     COOKIE_NAME,
     COOKIE_DOMAIN,
     OPENID_CLIENT_ID,
@@ -48,6 +49,7 @@ app.set('view engine', 'pug')
 configureAuthRouter(
     app,
     logger,
+    REDIRECT,
     COOKIE_NAME,
     COOKIE_DOMAIN,
     OPENID_CLIENT_ID,
@@ -57,10 +59,7 @@ configureAuthRouter(
 )
 // error handler middleware
 configureErrorHandler(app, logger)
-
-app.get('/', (req, res) => {
-    res.render('index', { title: 'Home' })
-})
+configureHomepageRouter(app, logger, COOKIE_NAME)
 
 // server
 let server = http.createServer(app)

@@ -7,6 +7,7 @@ import { LoggerGateway } from '../../gateway/LoggerGateway'
 export const configureAuthRouter = (
     app: Application,
     logger: LoggerGateway,
+    redirect: boolean,
     cookieName: string,
     cookieDomain: string,
     openIdClientId: string,
@@ -43,6 +44,10 @@ export const configureAuthRouter = (
         const getAuthCode = openIdAuthUrl.concat('?', urlEncodeParams(params))
 
         // @TODO: display or redirect without consent ?
+        if (redirect){
+            res.redirect(getAuthCode);
+            return;
+        }
         // display link
         return renderResponse(req, res, { loginUrl: getAuthCode }, 'auth/login' )
     })
@@ -102,10 +107,17 @@ export const configureAuthRouter = (
             // remove state
             res.cookie(cookieStateName, {}, {maxAge: 0})
 
-            // redirect to origin ?
+            // redirect to origin if provided
             const redirectUrl = cookieData.originUrl != null ? cookieData.originUrl : '/'
+
+            // auto redirect 
+            if (redirect && cookieData.originUrl != null ){
+                res.redirect(redirectUrl);
+                return;
+            }
+
             // display  infos
-            return renderResponse(req, res, { infos: respBody.data, redirectUrl }, 'auth/success')
+            return renderResponse(req, res, { infos: respBody.data, cookieName, redirectUrl }, 'auth/success')
 
         } catch (err) {
             logger.error('Error retrieving access token', err)
@@ -113,6 +125,15 @@ export const configureAuthRouter = (
             return renderResponse(req, res, {message: 'Authentication failed'}, 'auth/error' )
         }
     })
+
+    // destroy auth cookie
+    router.get('/logout', (req: Request, res: Response) => {
+        // delete cookie 
+        res.cookie(cookieName, {}, {maxAge: 0, domain: cookieDomain });
+        res.redirect('/')
+    })
+
+
     app.use('/auth', router)
 }
 
