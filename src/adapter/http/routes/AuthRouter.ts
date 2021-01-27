@@ -29,7 +29,7 @@ export const configureAuthRouter = (
         const originUrl = req.query.originUrl
         // store verifier with state in short live cookie (5min)
         const cookieData = JSON.stringify({ state, verifier, originUrl })
-        res.cookie(cookieStateName, cookieData, { maxAge: cookieMaxAge, httpOnly: true, secure: true })
+        res.cookie(cookieStateName, cookieData, { maxAge: cookieMaxAge, httpOnly: true, secure: true, sameSite: 'none' })
 
         const params: { [key: string]: string } = {
             response_type: 'code',
@@ -103,9 +103,9 @@ export const configureAuthRouter = (
             })
             const { access_token } = respBody.data
             // store in cookie
-            res.cookie(cookieName, access_token, { httpOnly: true, secure: true, domain: cookieDomain })
+            res.cookie(cookieName, access_token, { httpOnly: true, secure: true, sameSite: 'none', domain: cookieDomain })
             // remove state
-            res.cookie(cookieStateName, {}, {maxAge: 0})
+            res.cookie(cookieStateName, {}, {maxAge: -1})
 
             // redirect to origin if provided
             const redirectUrl = cookieData.originUrl != null ? cookieData.originUrl : '/'
@@ -129,7 +129,7 @@ export const configureAuthRouter = (
     // destroy auth cookie
     router.get('/logout', (req: Request, res: Response) => {
         // delete cookie 
-        res.cookie(cookieName, {}, {maxAge: 0, domain: cookieDomain });
+        res.cookie(cookieName, {}, {maxAge: -1, domain: cookieDomain });
         res.redirect('/')
     })
 
