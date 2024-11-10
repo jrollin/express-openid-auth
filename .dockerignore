@@ -4,6 +4,10 @@ npm-debug.log
 dist
 certificates
 
-.circleci
 .idea
 *.iml
+
+# git
+.git
+.gitattributes
+.gitignore
